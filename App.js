@@ -4,6 +4,7 @@ import { StackNavigator, TabNavigator } from 'react-navigation';
 import { Provider } from 'react-redux';
 
 import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 import store from './src/store';
 
@@ -12,6 +13,7 @@ export default class App extends Component<Props> {
   render() {
     const Login = StackNavigator(
       {
+        register: { screen: RegisterScreen },
         login: { screen: LoginScreen }
       },
       {
