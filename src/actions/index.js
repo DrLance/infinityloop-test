@@ -1,3 +1,3 @@
-import { register, logOut } from './authActions';
+import { register, logOut, login } from './authActions';
 
-export { register, logOut };
+export { register, logOut, login };

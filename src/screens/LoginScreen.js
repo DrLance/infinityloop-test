@@ -1,15 +1,34 @@
 import React, { Component } from 'react';
-import { ImageBackground, Image, Text, View, StatusBar } from 'react-native';
+import { Image, Text, View, AsyncStorage, Keyboard } from 'react-native';
 import { Container, Content, Form, Label, Input, Item, Body, Button } from 'native-base';
+import { connect } from 'react-redux';
 import MainContainer from '../components/common/MainContainer';
+import { login } from '../actions';
 
 class LoginScreen extends Component {
   state = {
     lblTextEmail: 'Электронная почта',
     lblTextPassword: 'Пароль',
     fontSizeEmail: 16,
-    fontSizePassword: 16
+    fontSizePassword: 16,
+    email: '',
+    password: ''
   };
+
+  componentDidMount = async () => {
+    const email = await AsyncStorage.getItem('email');
+    const password = await AsyncStorage.getItem('password');
+
+    if (email !== null && password !== null) {
+      this.setState({ email, password });
+    }
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.auth.user_info) {
+      return this.props.navigation.navigate('profile');
+    }
+  }
 
   changeText = type => {
     if (type === 'email') {
@@ -17,6 +36,20 @@ class LoginScreen extends Component {
     } else {
       this.setState({ lblTextPassword: 'Пароль'.toUpperCase(), fontSizePassword: 14 });
     }
+  };
+
+  onChangeEmail = email => {
+    this.setState({ email });
+  };
+
+  onChangePassword = password => {
+    console.log('email');
+    this.setState({ password });
+  };
+
+  onPressLogin = () => {
+    Keyboard.dismiss();
+    this.props.login(this.state.email, this.state.password);
   };
 
   render() {
@@ -39,7 +72,9 @@ class LoginScreen extends Component {
               <Input
                 onEndEditing={() => this.setState({ lblTextEmail: 'Электронная почта', fontSizeEmail: 16 })}
                 style={styles.input}
+                onChangeText={input => this.onChangeEmail(input)}
                 onFocus={() => this.changeText('email')}
+                value={this.state.email}
               />
             </Item>
             <Item floatingLabel style={styles.item}>
@@ -57,11 +92,13 @@ class LoginScreen extends Component {
                 onEndEditing={() => this.setState({ lblTextPassword: 'Пароль', fontSizePassword: 16 })}
                 secureTextEntry
                 style={styles.input}
+                onChangeText={input => this.onChangePassword(input)}
                 onFocus={() => this.changeText()}
+                value={this.state.password}
               />
             </Item>
           </Form>
-          <Button transparent block style={styles.button}>
+          <Button transparent block style={styles.button} onPress={this.onPressLogin}>
             <Text style={styles.textBtn}>Войти</Text>
           </Button>
         </Content>
@@ -120,4 +157,10 @@ const styles = {
     backgroundColor: 'hsla(198, 51%, 56%, 0.2)'
   }
 };
-export default LoginScreen;
+
+const mapStateToProps = state => {
+  return {
+    auth: state.auth
+  };
+};
+export default connect(mapStateToProps, { login })(LoginScreen);

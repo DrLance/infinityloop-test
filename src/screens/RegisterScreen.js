@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { ImageBackground, Image, Text, View, TouchableOpacity } from 'react-native';
+import {
+  ImageBackground,
+  Image,
+  Text,
+  View,
+  TouchableOpacity,
+  DatePickerAndroid,
+  DatePickerIOS,
+  Platform
+} from 'react-native';
 import { Content, Form, Label, Input, Item, Button, Header, Icon, Title } from 'native-base';
 import { connect } from 'react-redux';
 import MainContainer from '../components/common/MainContainer';
@@ -11,21 +20,52 @@ class RegisterScreen extends Component {
     lblTextEmail: 'Электронная почта',
     lblTextPassword: 'Пароль',
     lblTextName: 'Имя и фамилия',
-    lblTextDateBirth: 'Дата рождения'
+    lblTextDateBirth: 'Дата рождения',
+    name: '',
+    email: '',
+    password: '',
+    birthday: '',
+    isRenderDatePicker: false,
+    errorMsg: ''
   };
 
-  componentDidMount() {
-    console.log(11);
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.auth.error && this.state.errorMsg.length === 0) {
+      const { msg } = this.props.auth.error;
+      return this.setState({ errorMsg: msg });
+    } else if (!this.props.auth.error && this.state.errorMsg.length !== 0) {
+      return this.setState({ errorMsg: '' });
+    }
+    if (this.props.auth.user_id) {
+      this.props.navigation.navigate('login');
+    }
   }
 
   onPressRegister = () => {
-    actions.register();
+    const { email, password, name, birthday } = this.state;
+
+    this.props.register(email, password, name, birthday);
   };
 
   onPressClose = () => {
     this.props.navigation.navigate('login');
-    //actions.logOut();
   };
+
+  onPressBirthDay = async () => {
+    if (Platform.OS !== 'ios') {
+      const { action, year, month, day } = await DatePickerAndroid.open({
+        // Use `new Date()` for current date.
+        // May 25 2020. Month 0 is January.
+        date: new Date()
+      });
+
+      if (action !== DatePickerAndroid.dismissedAction) {
+        const birthday = year + '-' + month + '-' + day;
+        this.setState({ birthday });
+      }
+    }
+  };
+
   render() {
     return (
       <MainContainer>
@@ -45,21 +85,32 @@ class RegisterScreen extends Component {
           <Form>
             <Item floatingLabel style={styles.item}>
               <Label style={styles.label}>{this.state.lblTextEmail}</Label>
-              <Input style={styles.input} onFocus={() => console.log('focus')} />
+              <Input
+                onChangeText={email => this.setState({ email })}
+                style={styles.input}
+                onFocus={() => console.log('focus')}
+              />
             </Item>
             <Item floatingLabel style={styles.item}>
               <Label style={styles.label}>{this.state.lblTextPassword}</Label>
-              <Input secureTextEntry style={styles.input} />
+              <Input secureTextEntry style={styles.input} onChangeText={password => this.setState({ password })} />
             </Item>
             <Item floatingLabel style={styles.item}>
               <Label style={styles.label}>{this.state.lblTextName}</Label>
-              <Input style={styles.input} />
+              <Input style={styles.input} onChangeText={name => this.setState({ name })} />
             </Item>
-            <Item floatingLabel style={styles.item}>
+            <Item floatingLabel style={styles.item} onPress={() => this.onPressBirthDay()}>
               <Label style={styles.label}>{this.state.lblTextDateBirth}</Label>
-              <Input disabled style={styles.input} />
+              <Input disabled style={styles.input} value={this.state.birthday} />
             </Item>
+            {this.state.errorMsg.length > 0 ? (
+              <Item error style={styles.item}>
+                <Input style={styles.input} disabled placeholder={this.state.errorMsg} />
+                <Icon name="close-circle" />
+              </Item>
+            ) : null}
           </Form>
+          {this.state.isRenderDatePicker && DatePickerIOS}
         </Content>
       </MainContainer>
     );

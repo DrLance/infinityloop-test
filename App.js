@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 import store from './src/store';
 
@@ -13,8 +14,9 @@ export default class App extends Component<Props> {
   render() {
     const Login = StackNavigator(
       {
+        login: { screen: LoginScreen },
         register: { screen: RegisterScreen },
-        login: { screen: LoginScreen }
+        profile: { screen: ProfileScreen }
       },
       {
         headerMode: 'none'
